@@ -296,36 +296,66 @@ void getmd5(const char* str, unsigned int len, char* result)
 // Catatan : untuk fungsi enkripsinya mengambil dari referensi.
 int main(int argc, char *argv[]){
   char result[256];
-  
-  if(argc > 2){
-    printf(1, "Argument not valid\n");
-    exit();
+
+  //tambahan.. ini read file namun untuk semua bytes (bukan perline)
+  if(strcmp(argv[1], "-a") == 0){
+    int file;
+    file = open(argv[2], 0);
+    if(file < 1){
+      printf(1, "md5sum: %s: No such file or directory\n", argv[2]);
+      exit();
+    }
+
+    int status = 0;
+    char binaryFile = '.';
+    char temp = '.';
+    char *str = &temp;
+    char *itr = str;
+
+    while( (status = read(file, &binaryFile, sizeof(binaryFile))) >  0){
+      *itr = binaryFile;
+      itr++;
+    }
+
+    unsigned int len = strlen(str);
+    getmd5(str, len, result);
+    for(char *a = result; *a!=' ' && *a!='\0'; a++) printf(1, "%c", *a);
+    printf(1,"  %s\n", argv[2]);
+
   }
+  else if(strcmp(argv[1], "-f") == 0){
+    int file;
+    file = open(argv[2], 0);
+    if(file < 1){
+      printf(1, "md5sum: %s: No such file or directory\n", argv[2]);
+      exit();
+    }
 
-  int file;
-  file = open(argv[1], 0);
-  if(file < 1){
-    printf(1, "md5sum: %s: No such file or directory\n", argv);
-    exit();
+    int status = 0, line = 0;
+    char binaryFile = '.';
+    char temp = '.';
+    char *str = &temp;
+    char *itr = str;
+
+    while( (status = read(file, &binaryFile, sizeof(binaryFile))) >  0){
+      *itr = binaryFile;
+      if(*itr == '\n'){
+        line++;
+        *itr = '\0';
+        //printf(1, "%s\n", str);
+        unsigned int len = strlen(str);
+        getmd5(str, len, result);
+        printf(1, "%s line %d\n", result, line);
+
+        itr = str;
+        itr--;
+      }
+      itr++;
+    }
   }
-
-  int status = 0;
-  char binaryFile = '.';
-  char temp = '.';
-  char *str = &temp;
-  char *itr = str;
-
-  while( (status = read(file, &binaryFile, sizeof(binaryFile))) >  0){
-    *itr = binaryFile;
-    //printf(1, "%d %c\n", (int)itr,*itr);
-    //printf(1, "%s\n", str);
-    itr++;
+  else{
+    printf(1,"hehe\n");
   }
-
-  unsigned int len = strlen(str);
-  //printf(1, "\n hehe : %s\n", str);
-  getmd5(str, len, result);
-  printf(1, "%s  %s\n", result, argv[1]);
 
   exit();
 }
